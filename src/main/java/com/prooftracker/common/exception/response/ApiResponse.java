@@ -1,4 +1,4 @@
-package com.prooftracker.response;
+package com.prooftracker.common.exception.response;
 
 import lombok.Builder;
 import lombok.Getter;
