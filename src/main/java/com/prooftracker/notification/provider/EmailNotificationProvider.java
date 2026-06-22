@@ -1,17 +1,22 @@
 package com.prooftracker.notification.provider;
 
 import com.prooftracker.notification.dto.NotificationRequest;
-import lombok.RequiredArgsConstructor;
+import com.prooftracker.notification.enums.NotificationChannel;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class EmailNotificationProvider
-        implements NotificationProvider {
+public class EmailNotificationProvider implements NotificationProvider{
 
     private final JavaMailSender mailSender;
+
+    public EmailNotificationProvider(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    @Override
+    public NotificationChannel getChannel() {
+        return NotificationChannel.EMAIL;
+    }
 
     @Override
     public void send(NotificationRequest request) {
