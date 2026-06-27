@@ -2,9 +2,13 @@ package com.prooftracker.notification.provider;
 
 import com.prooftracker.notification.dto.NotificationRequest;
 import com.prooftracker.notification.enums.NotificationChannel;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Component;
 
+
+@Component
 public class EmailNotificationProvider implements NotificationProvider{
 
     private final JavaMailSender mailSender;

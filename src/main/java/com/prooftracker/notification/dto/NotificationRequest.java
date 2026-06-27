@@ -15,7 +15,5 @@ public class NotificationRequest {
 
     private String message;
 
-    private NotificationType type;
-
     private NotificationChannel channel;
 }

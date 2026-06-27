@@ -29,7 +29,6 @@ public class NotificationServiceImpl
                         .subject(request.getSubject())
                         .message(request.getMessage())
                         .channel(request.getChannel())
-                        .type(request.getType())
                         .status(NotificationStatus.PENDING)
                         .build();
 

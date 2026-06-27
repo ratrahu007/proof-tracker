@@ -1,11 +1,17 @@
 package com.prooftracker.otp.entity;
 
+import com.prooftracker.notification.enums.NotificationChannel;
 import com.prooftracker.notification.enums.NotificationType;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.Id;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "otp_verifications")
 public class OtpVerification {
@@ -17,7 +23,7 @@ public class OtpVerification {
     private String recipient;
 
     @Enumerated(EnumType.STRING)
-    private NotificationType channel;
+    private NotificationChannel channel;
 
     private String otp;
 
