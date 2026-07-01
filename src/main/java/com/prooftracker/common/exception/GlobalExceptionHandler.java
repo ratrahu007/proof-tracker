@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     handleValidation(
             MethodArgumentNotValidException ex) {
 
-        Map<String,String> errors =
+        Map<String, String> errors =
                 new HashMap<>();
 
         ex.getBindingResult()
@@ -68,6 +68,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse>
     handleException(Exception ex) {
+
+        // Temporary Debug
+        ex.printStackTrace();
 
         ErrorResponse response =
                 ErrorResponse.builder()

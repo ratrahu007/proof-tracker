@@ -3,6 +3,7 @@ package com.prooftracker.auth.service;
 import com.prooftracker.auth.dto.LoginRequest;
 import com.prooftracker.auth.dto.RegisterRequest;
 import com.prooftracker.auth.dto.AuthResponse;
+import com.prooftracker.auth.security.JwtService;
 import com.prooftracker.common.exception.AppException;
 import com.prooftracker.common.exception.ErrorCode;
 import com.prooftracker.notification.enums.NotificationChannel;
@@ -24,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
     private final OtpRepository otpRepository;
+    private final JwtService jwtService;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -57,6 +59,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
+
+
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() ->
@@ -105,13 +109,15 @@ public class AuthServiceImpl implements AuthService {
                     "Invalid email or password"
             );
         }
+        String accessToken =
+                jwtService.generateToken(user);
 
         return new AuthResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getRole().name(),
-                null,
+                accessToken,
                 null
 
         );
