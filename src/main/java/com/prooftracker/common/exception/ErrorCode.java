@@ -47,6 +47,8 @@ public enum ErrorCode {
 
 
     // GOAL
+
+    GOAL_ACCESS_DENIED(HttpStatus.FORBIDDEN),
     GOAL_NOT_FOUND(HttpStatus.NOT_FOUND),
     GOAL_ALREADY_ARCHIVED(HttpStatus.BAD_REQUEST),
 

@@ -14,6 +14,7 @@ import com.prooftracker.otp.service.OtpService;
 import com.prooftracker.auth.entity.User;
 import com.prooftracker.auth.enums.Role;
 import com.prooftracker.auth.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -123,6 +124,57 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().name(),
                 accessToken,
                 refreshToken.getToken()
+        );
+    }
+
+    @Override
+    public AuthResponse refreshToken(String token) {
+
+        RefreshToken refreshToken =
+                refreshTokenService
+                        .findByToken(token)
+                        .orElseThrow(() ->
+                                new AppException(
+                                        ErrorCode.INVALID_TOKEN,
+                                        "Refresh token not found"
+                                )
+                        );
+
+        refreshToken =
+                refreshTokenService
+                        .verifyExpiration(refreshToken);
+
+        User user = refreshToken.getUser();
+
+        String accessToken =
+                jwtService.generateToken(user);
+
+        return new AuthResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().name(),
+                accessToken,
+                refreshToken.getToken()
+        );
+    }
+
+    @Transactional
+    @Override
+    public void logout(String token) {
+
+        RefreshToken refreshToken =
+                refreshTokenService
+                        .findByToken(token)
+                        .orElseThrow(() ->
+                                new AppException(
+                                        ErrorCode.INVALID_TOKEN,
+                                        "Invalid refresh token"
+                                )
+                        );
+
+        refreshTokenService.deleteByUser(
+                refreshToken.getUser()
         );
     }
 }

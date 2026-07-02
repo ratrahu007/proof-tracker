@@ -1,12 +1,15 @@
 package com.prooftracker.auth.service;
 
-import com.prooftracker.auth.dto.AuthResponse;
-import com.prooftracker.auth.dto.LoginRequest;
-import com.prooftracker.auth.dto.RegisterRequest;
+import com.prooftracker.auth.dto.*;
 
 public interface AuthService {
 
     AuthResponse register(RegisterRequest request);
 
     AuthResponse login(LoginRequest request);
+
+    AuthResponse refreshToken(String token);
+
+    void logout(String token);
+
 }
