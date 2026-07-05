@@ -54,6 +54,7 @@ public enum ErrorCode {
 
     // PROOF
     PROOF_NOT_FOUND(HttpStatus.NOT_FOUND),
+    PROOF_ACCESS_DENIED(HttpStatus.FORBIDDEN),
 
     // COMMON
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
