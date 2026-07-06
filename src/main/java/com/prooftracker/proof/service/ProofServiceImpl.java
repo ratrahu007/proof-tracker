@@ -41,6 +41,12 @@ public class ProofServiceImpl implements ProofService {
 
         Proof savedProof = proofRepository.save(proof);
 
+        goal.setCurrentScore(
+                goal.getCurrentScore() + savedProof.getScore()
+        );
+
+        goalRepository.save(goal);
+
         return mapToResponse(savedProof);
     }
 
@@ -70,6 +76,18 @@ public class ProofServiceImpl implements ProofService {
     public void deleteProof(Long proofId) {
 
         Proof proof = getProofForCurrentUser(proofId);
+
+        Goal goal = proof.getGoal();
+
+        goal.setCurrentScore(
+                Math.max(
+                        0,
+                        goal.getCurrentScore() - proof.getScore()
+                )
+        );
+
+        goalRepository.save(goal);
+
 
         proofRepository.delete(proof);
     }
