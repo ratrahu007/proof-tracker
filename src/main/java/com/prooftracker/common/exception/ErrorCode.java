@@ -56,6 +56,9 @@ public enum ErrorCode {
     PROOF_NOT_FOUND(HttpStatus.NOT_FOUND),
     PROOF_ACCESS_DENIED(HttpStatus.FORBIDDEN),
 
+    //Progress
+    PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND),
+
     // COMMON
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST),

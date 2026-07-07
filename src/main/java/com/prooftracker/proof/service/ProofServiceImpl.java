@@ -6,6 +6,7 @@ import com.prooftracker.common.exception.ErrorCode;
 import com.prooftracker.global.SecurityUtils;
 import com.prooftracker.goal.entity.Goal;
 import com.prooftracker.goal.repository.GoalRepository;
+import com.prooftracker.progress.service.ProgressService;
 import com.prooftracker.proof.dto.ProofRequest;
 import com.prooftracker.proof.dto.ProofResponse;
 import com.prooftracker.proof.entity.Proof;
@@ -22,6 +23,7 @@ public class ProofServiceImpl implements ProofService {
     private final ProofRepository proofRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
+    private final ProgressService progressService;
 
     @Override
     public ProofResponse createProof(ProofRequest request) {
@@ -45,7 +47,11 @@ public class ProofServiceImpl implements ProofService {
                 goal.getCurrentScore() + savedProof.getScore()
         );
 
+        progressService.createSnapshot(goal.getId());
+
         goalRepository.save(goal);
+
+
 
         return mapToResponse(savedProof);
     }
@@ -88,7 +94,7 @@ public class ProofServiceImpl implements ProofService {
 
         goalRepository.save(goal);
 
-
+        progressService.createSnapshot(goal.getId());
         proofRepository.delete(proof);
     }
 

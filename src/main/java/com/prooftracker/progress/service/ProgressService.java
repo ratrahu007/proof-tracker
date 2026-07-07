@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface ProgressService {
 
-    void updateProgress(Long goalId);
+    void createSnapshot(Long goalId);
 
-    ProgressResponse getGoalProgress(Long goalId);
+    ProgressResponse getCurrentProgress(Long goalId);
 
     List<ProgressResponse> getProgressHistory(Long goalId);
 }
