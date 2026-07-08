@@ -13,4 +13,10 @@ public interface ProofRepository
     List<Proof> findByUserId(Long userId);
 
     List<Proof> findByGoalId(Long goalId);
+
+    long countByUserId(Long userId);
+
+    List<Proof> findTop10ByUserIdOrderByCreatedAtDesc(
+            Long userId
+    );
 }
