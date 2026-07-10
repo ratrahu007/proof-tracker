@@ -29,7 +29,7 @@ public class GithubAccount {
     /**
      * Github User Information
      */
-    private String githubId;
+    private Long githubId;
 
     private String githubUsername;
 
