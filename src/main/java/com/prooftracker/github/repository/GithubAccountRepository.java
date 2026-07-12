@@ -1,5 +1,6 @@
 package com.prooftracker.github.repository;
 
+import com.prooftracker.auth.entity.User;
 import com.prooftracker.github.entity.GithubAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,8 @@ public interface GithubAccountRepository extends JpaRepository<GithubAccount, Lo
     Optional<GithubAccount> findByGithubUsername(String githubUsername);
 
     boolean existsByUserId(Long userId);
+
+    Optional<GithubAccount> findByUser(User user);
+
+    Optional<GithubAccount> findByGithubId(Long githubId);
 }
