@@ -2,6 +2,8 @@ package com.prooftracker.proof.repository;
 
 import com.prooftracker.proof.entity.Proof;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,5 +20,15 @@ public interface ProofRepository
 
     List<Proof> findTop10ByUserIdOrderByCreatedAtDesc(
             Long userId
+    );
+
+    @Query("""
+       SELECT COALESCE(SUM(p.score),0)
+       FROM Proof p
+       WHERE p.goal.id = :goalId
+       """)
+    Integer sumScoreByGoal(
+            @Param("goalId")
+            Long goalId
     );
 }

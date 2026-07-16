@@ -1,9 +1,9 @@
 package com.prooftracker.github.service;
 
 import com.prooftracker.auth.entity.User;
-import com.prooftracker.github.dto.GithubAccessTokenResponse;
-import com.prooftracker.github.dto.GithubConnectResponse;
-import com.prooftracker.github.dto.GithubUserResponse;
+import com.prooftracker.github.dto.*;
+
+import java.util.List;
 
 public interface GithubService {
 
@@ -18,4 +18,14 @@ public interface GithubService {
             GithubUserResponse githubUser,
             String accessToken
     );
+
+    GithubAccountResponse getConnectedAccount();
+
+    List<GithubRepositoryResponse> getRepositories();
+
+    void syncGithubActivities();
+
+    void generateProofsFromGithubActivities();
+
+
 }

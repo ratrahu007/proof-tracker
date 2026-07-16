@@ -1,22 +1,36 @@
 package com.prooftracker.github.service;
 
 import com.prooftracker.auth.entity.User;
+import com.prooftracker.github.entity.GithubActivity;
 import com.prooftracker.auth.repository.UserRepository;
+import com.prooftracker.github.dto.*;
 import com.prooftracker.github.entity.GithubAccount;
 import com.prooftracker.github.config.GithubProperties;
-import com.prooftracker.github.dto.GithubAccessTokenResponse;
-import com.prooftracker.github.dto.GithubConnectResponse;
-import com.prooftracker.github.dto.GithubUserResponse;
 import com.prooftracker.github.repository.GithubAccountRepository;
-import com.prooftracker.github.service.GithubService;
+import com.prooftracker.github.repository.GithubActivityRepository;
+import com.prooftracker.global.SecurityUtils;
+import com.prooftracker.goal.entity.Goal;
+import com.prooftracker.goal.enums.GoalStatus;
+import com.prooftracker.goal.repository.GoalRepository;
+
+import com.prooftracker.progress.service.ProgressService;
+import com.prooftracker.proof.entity.Proof;
+import com.prooftracker.proof.enums.ProofType;
+import com.prooftracker.proof.repository.ProofRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -35,6 +49,12 @@ public class GithubServiceImpl implements GithubService {
 
     private final GithubAccountRepository githubAccountRepository;
     private final UserRepository userRepository;
+    private final GithubActivityRepository githubActivityRepository;
+    private final ProofRepository proofRepository;
+    private final GoalRepository goalRepository;
+    private final ProgressService progressService;
+
+
 
     @Override
     public GithubConnectResponse connect() {
@@ -94,6 +114,9 @@ public class GithubServiceImpl implements GithubService {
     }
 
 
+
+
+
     @Override
     public GithubUserResponse getCurrentUser(String accessToken) {
 
@@ -104,5 +127,176 @@ public class GithubServiceImpl implements GithubService {
                 .retrieve()
                 .body(GithubUserResponse.class);
     }
+
+
+    @Override
+    public GithubAccountResponse getConnectedAccount() {
+
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        GithubAccount githubAccount =
+                githubAccountRepository.findByUser(user)
+                        .orElseThrow(() ->
+                                new RuntimeException("Github account not connected"));
+
+        return new GithubAccountResponse(
+                githubAccount.getGithubUsername(),
+                githubAccount.getProfileUrl(),
+                githubAccount.getAvatarUrl(),
+                githubAccount.getConnected()
+        );
+    }
+
+    @Override
+    public List<GithubRepositoryResponse> getRepositories() {
+
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        GithubAccount githubAccount =
+                githubAccountRepository.findByUser(user)
+                        .orElseThrow(() ->
+                                new RuntimeException("Github account not connected"));
+
+        return Arrays.asList(
+                restClient.get()
+                        .uri("https://api.github.com/user/repos")
+                        .header(
+                                HttpHeaders.AUTHORIZATION,
+                                "Bearer " + githubAccount.getAccessToken()
+                        )
+                        .retrieve()
+                        .body(GithubRepositoryResponse[].class)
+        );
+    }
+
+    @Override
+    public void syncGithubActivities() {
+
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        GithubAccount githubAccount =
+                githubAccountRepository.findByUser(user)
+                        .orElseThrow(() ->
+                                new RuntimeException("Github account not connected"));
+
+        GithubEventResponse[] events = restClient.get()
+                .uri("https://api.github.com/users/" +
+                        githubAccount.getGithubUsername() +
+                        "/events")
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer " + githubAccount.getAccessToken()
+                )
+                .retrieve()
+                .body(GithubEventResponse[].class);
+
+        if (events == null) {
+            return;
+        }
+
+        for (GithubEventResponse event : events) {
+
+            boolean exists =
+                    githubActivityRepository
+                            .findByGithubEventId(event.id())
+                            .isPresent();
+
+            if (exists) {
+                continue;
+            }
+
+            GithubActivity activity =
+                    GithubActivity.builder()
+                            .githubEventId(event.id())
+                            .eventType(event.type())
+                            .repoName(event.repo().name())
+                            .activityTime(
+                                    LocalDateTime.parse(
+                                            event.created_at()
+                                                    .replace("Z", "")
+                                    )
+                            )
+                            .proofGenerated(false)
+                            .user(user)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+
+            githubActivityRepository.save(activity);
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void generateProofsFromGithubActivities() {
+
+        String email = SecurityUtils.getCurrentUserEmail();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        Goal goal = goalRepository
+                .findByUserAndStatus(user, GoalStatus.ACTIVE)
+                .orElseThrow(() ->
+                        new RuntimeException("No active goal found"));
+
+        List<GithubActivity> activities =
+                githubActivityRepository
+                        .findByUserAndProofGeneratedFalse(user);
+
+        for (GithubActivity activity : activities) {
+
+            int score = switch (activity.getEventType()) {
+
+                case "PushEvent" -> 10;
+
+                case "CreateEvent" -> 5;
+
+                default -> 0;
+            };
+
+            if (score == 0) {
+                activity.setProofGenerated(true);
+                continue;
+            }
+
+            Proof proof = Proof.builder()
+                    .goal(goal)
+                    .user(user)
+                    .proofType(ProofType.GITHUB)
+                    .score(score)
+                    .verified(true)
+                    .description(
+                            activity.getEventType()
+                                    + " on "
+                                    + activity.getRepoName()
+                    )
+                    .build();
+
+            proofRepository.save(proof);
+
+            activity.setProofGenerated(true);
+
+            progressService.updateGoalProgress(
+                    goal.getId());
+        }
+    }
+
+
+
+
 }
 

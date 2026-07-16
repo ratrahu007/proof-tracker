@@ -29,7 +29,7 @@ public class AuthController {
                 .body(
                         ApiResponse.<AuthResponse>builder()
                                 .success(true)
-                                .message("User registered successfully. OTP sent.")
+                                .message("User registered successfully")
                                 .data(response)
                                 .timestamp(LocalDateTime.now())
                                 .build()

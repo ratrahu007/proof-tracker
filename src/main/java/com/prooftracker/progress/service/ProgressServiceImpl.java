@@ -9,6 +9,8 @@ import com.prooftracker.goal.repository.GoalRepository;
 import com.prooftracker.progress.dto.ProgressResponse;
 import com.prooftracker.progress.entity.ProgressSnapshot;
 import com.prooftracker.progress.repository.ProgressSnapshotRepository;
+import com.prooftracker.proof.repository.ProofRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ public class ProgressServiceImpl implements ProgressService {
     private final ProgressSnapshotRepository progressSnapshotRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
+    private final ProofRepository proofRepository;
 
     @Override
     public void createSnapshot(Long goalId) {
@@ -106,6 +109,41 @@ public class ProgressServiceImpl implements ProgressService {
         }
 
         return goal;
+    }
+
+
+    @Override
+    @Transactional
+    public void updateGoalProgress(Long goalId) {
+
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() ->
+                        new RuntimeException("Goal not found"));
+
+        Integer totalScore =
+                proofRepository.sumScoreByGoal(goalId);
+
+        if (totalScore == null) {
+            totalScore = 0;
+        }
+
+        double progressPercentage =
+                ((double) totalScore /
+                        goal.getTargetScore()) * 100;
+
+        goal.setCurrentScore(totalScore);
+
+        goalRepository.save(goal);
+
+        ProgressSnapshot snapshot =
+                ProgressSnapshot.builder()
+                        .goal(goal)
+                        .currentScore(totalScore)
+                        .progressPercentage(progressPercentage)
+                        .snapshotDate(LocalDate.now())
+                        .build();
+
+        progressSnapshotRepository.save(snapshot);
     }
 
     private ProgressResponse mapToResponse(

@@ -11,4 +11,6 @@ public interface ProgressService {
     ProgressResponse getCurrentProgress(Long goalId);
 
     List<ProgressResponse> getProgressHistory(Long goalId);
+
+    void updateGoalProgress(Long goalId);
 }
