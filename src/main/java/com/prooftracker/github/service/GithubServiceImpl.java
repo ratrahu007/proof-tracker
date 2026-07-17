@@ -1,6 +1,8 @@
 package com.prooftracker.github.service;
 
 import com.prooftracker.auth.entity.User;
+import com.prooftracker.common.exception.AppException;
+import com.prooftracker.common.exception.ErrorCode;
 import com.prooftracker.github.entity.GithubActivity;
 import com.prooftracker.auth.repository.UserRepository;
 import com.prooftracker.github.dto.*;
@@ -12,12 +14,11 @@ import com.prooftracker.global.SecurityUtils;
 import com.prooftracker.goal.entity.Goal;
 import com.prooftracker.goal.enums.GoalStatus;
 import com.prooftracker.goal.repository.GoalRepository;
-
+import java.time.LocalDateTime;
 import com.prooftracker.progress.service.ProgressService;
 import com.prooftracker.proof.entity.Proof;
 import com.prooftracker.proof.enums.ProofType;
 import com.prooftracker.proof.repository.ProofRepository;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -136,12 +133,12 @@ public class GithubServiceImpl implements GithubService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new AppException(ErrorCode.USER_NOT_FOUND,"User not found"));
 
         GithubAccount githubAccount =
                 githubAccountRepository.findByUser(user)
                         .orElseThrow(() ->
-                                new RuntimeException("Github account not connected"));
+                                new AppException(ErrorCode.GITHUB_NOT_FOUND,"Github account not connected"));
 
         return new GithubAccountResponse(
                 githubAccount.getGithubUsername(),
@@ -158,12 +155,12 @@ public class GithubServiceImpl implements GithubService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new AppException(ErrorCode.USER_NOT_FOUND,"User not found"));
 
         GithubAccount githubAccount =
                 githubAccountRepository.findByUser(user)
                         .orElseThrow(() ->
-                                new RuntimeException("Github account not connected"));
+                                new AppException(ErrorCode.GITHUB_NOT_FOUND,"Github account not connected"));
 
         return Arrays.asList(
                 restClient.get()
@@ -177,6 +174,7 @@ public class GithubServiceImpl implements GithubService {
         );
     }
 
+
     @Override
     public void syncGithubActivities() {
 
@@ -184,12 +182,25 @@ public class GithubServiceImpl implements GithubService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new AppException(
+                                ErrorCode.USER_NOT_FOUND,
+                                "User not found"
+                        ));
 
         GithubAccount githubAccount =
                 githubAccountRepository.findByUser(user)
                         .orElseThrow(() ->
-                                new RuntimeException("Github account not connected"));
+                                new AppException(
+                                        ErrorCode.GITHUB_NOT_FOUND,
+                                        "Github Account not Connected"
+                                ));
+
+        syncGithubActivities(githubAccount);
+    }
+
+
+    @Override
+    public void syncGithubActivities(GithubAccount githubAccount) {
 
         GithubEventResponse[] events = restClient.get()
                 .uri("https://api.github.com/users/" +
@@ -229,7 +240,7 @@ public class GithubServiceImpl implements GithubService {
                                     )
                             )
                             .proofGenerated(false)
-                            .user(user)
+                            .user(githubAccount.getUser())
                             .createdAt(LocalDateTime.now())
                             .build();
 
@@ -246,12 +257,37 @@ public class GithubServiceImpl implements GithubService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new AppException(
+                                ErrorCode.USER_NOT_FOUND,
+                                "User not found"
+                        ));
+
+        GithubAccount githubAccount =
+                githubAccountRepository.findByUser(user)
+                        .orElseThrow(() ->
+                                new AppException(
+                                        ErrorCode.GITHUB_NOT_FOUND,
+                                        "Github Account not Connected"
+                                ));
+
+        generateProofsFromGithubActivities(githubAccount);
+    }
+
+
+    @Override
+    @Transactional
+    public void generateProofsFromGithubActivities(
+            GithubAccount githubAccount) {
+
+        User user = githubAccount.getUser();
 
         Goal goal = goalRepository
                 .findByUserAndStatus(user, GoalStatus.ACTIVE)
                 .orElseThrow(() ->
-                        new RuntimeException("No active goal found"));
+                        new AppException(
+                                ErrorCode.GOAL_NOT_FOUND,
+                                "No active goal found"
+                        ));
 
         List<GithubActivity> activities =
                 githubActivityRepository
@@ -269,7 +305,11 @@ public class GithubServiceImpl implements GithubService {
             };
 
             if (score == 0) {
+
                 activity.setProofGenerated(true);
+
+                githubActivityRepository.save(activity);
+
                 continue;
             }
 
@@ -290,11 +330,13 @@ public class GithubServiceImpl implements GithubService {
 
             activity.setProofGenerated(true);
 
-            progressService.updateGoalProgress(
-                    goal.getId());
+            githubActivityRepository.save(activity);
         }
-    }
 
+        progressService.updateGoalProgress(
+                goal.getId()
+        );
+    }
 
 
 

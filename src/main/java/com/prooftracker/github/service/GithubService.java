@@ -2,6 +2,7 @@ package com.prooftracker.github.service;
 
 import com.prooftracker.auth.entity.User;
 import com.prooftracker.github.dto.*;
+import com.prooftracker.github.entity.GithubAccount;
 
 import java.util.List;
 
@@ -26,6 +27,12 @@ public interface GithubService {
     void syncGithubActivities();
 
     void generateProofsFromGithubActivities();
+
+    void syncGithubActivities(GithubAccount githubAccount);
+
+    void generateProofsFromGithubActivities(
+            GithubAccount githubAccount
+    );
 
 
 }

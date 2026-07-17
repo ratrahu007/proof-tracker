@@ -56,6 +56,9 @@ public enum ErrorCode {
     PROOF_NOT_FOUND(HttpStatus.NOT_FOUND),
     PROOF_ACCESS_DENIED(HttpStatus.FORBIDDEN),
 
+    //GITHUB
+    GITHUB_NOT_FOUND(HttpStatus.NOT_FOUND),
+
     //Progress
     PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND),
 
@@ -63,6 +66,10 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
+
+
+
+
 
     private final HttpStatus status;
 
