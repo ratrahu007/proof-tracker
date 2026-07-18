@@ -24,4 +24,6 @@ public interface GoalRepository
             User user,
             GoalStatus status
     );
+
+    List<Goal> findByStatus(GoalStatus status);
 }

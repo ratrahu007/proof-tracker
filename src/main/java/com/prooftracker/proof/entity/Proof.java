@@ -5,6 +5,7 @@ import com.prooftracker.goal.entity.Goal;
 import com.prooftracker.proof.enums.ProofType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -39,5 +40,7 @@ public class Proof {
 
     private Boolean verified;
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

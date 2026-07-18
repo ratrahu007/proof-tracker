@@ -18,7 +18,7 @@ public class GithubProofScheduler {
     private final GithubService githubService;
     private final GithubAccountRepository githubAccountRepository;
 
-    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 15 */6 * * *")
     public void generateGithubProofs() {
 
         log.info("Github Proof Generation Started");

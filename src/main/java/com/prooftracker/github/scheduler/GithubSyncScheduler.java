@@ -18,7 +18,7 @@ public class GithubSyncScheduler {
     private final GithubService githubService;
     private final GithubAccountRepository githubAccountRepository;
 
-    @Scheduled(cron = "0 */2 * * * *")
+    @Scheduled(cron = "0 0 */6 * * *")
     public void syncAllGithubAccounts() {
 
         log.info("Github Sync Started");
