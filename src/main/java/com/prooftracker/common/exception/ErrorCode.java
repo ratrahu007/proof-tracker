@@ -62,6 +62,10 @@ public enum ErrorCode {
     //Progress
     PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND),
 
+    //Risk
+    RISK_NOT_FOUND(HttpStatus.NOT_FOUND),
+
+
     // COMMON
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND),
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST),
