@@ -3,7 +3,7 @@
 <configuration>
 
     <property name="LOG_PATH" value="logs"/>
-    <property name="LOG_FILE" value="${LOG_PATH}/genmillenauts.log"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/proof-tracker.log"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 
