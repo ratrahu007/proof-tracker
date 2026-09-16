@@ -1,5 +1,6 @@
 package com.prooftracker.goal.entity;
 
+import com.prooftracker.aicoach.entity.AiRecommendation;
 import com.prooftracker.auth.entity.User;
 import com.prooftracker.goal.enums.GoalStatus;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "goals")
@@ -50,6 +52,9 @@ public class Goal {
             foreignKey = @ForeignKey(name = "fk_goal_user")
     )
     private User user;
+
+    @OneToMany(mappedBy = "goal")
+    private List<AiRecommendation> recommendations;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
