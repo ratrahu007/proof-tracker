@@ -3,8 +3,10 @@ package com.prooftracker.aicoach.prompt;
 import com.prooftracker.aicoach.dto.CoachRequest;
 import org.springframework.stereotype.Component;
 
+
 @Component
 public class PromptBuilder {
+
     public String buildPrompt(CoachRequest request) {
 
         return """

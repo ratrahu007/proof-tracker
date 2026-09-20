@@ -3,6 +3,8 @@ package com.prooftracker.aicoach.dto;
 import java.time.LocalDate;
 
 public record CoachRequest(
+
+        Long goalId,
         String goalTitle,
         String goalDescription,
         LocalDate deadline,
